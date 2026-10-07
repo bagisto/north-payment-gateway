@@ -51,7 +51,7 @@ class North extends Payment
     {
         $url = $this->getConfigData('image');
 
-        return $url ? Storage::url($url) : bagisto_asset('images/north.png', 'shop');
+        return $url ? Storage::url($url) : Storage::url('north/north.png');
     }
 
     /**
@@ -103,18 +103,29 @@ class North extends Payment
     /**
      * Create a North Embedded Checkout session for the given amount.
      *
+     * North validates $amount against the sum of $products alone — its "tax" and "serviceFee"
+     * fields are not folded into that check, so any tax, shipping or discount must be its own
+     * entry in $products rather than passed separately, or it goes uncharged.
+     *
      * @param  float  $amount
+     * @param  array<int, array{name: string, price: float, quantity: int, logoUrl: string}>  $products
      * @return array
      */
-    public function createSession($amount)
+    public function createSession($amount, array $products = [])
     {
+        $payload = [
+            'checkoutId' => $this->getCheckoutId(),
+            'profileId' => $this->getProfileId(),
+            'amount' => $amount,
+        ];
+
+        if (! empty($products)) {
+            $payload['products'] = $products;
+        }
+
         $response = Http::withToken($this->getApiKey())
             ->retry(2, 500, $this->retryOnTransientFailure())
-            ->post(self::API_BASE_URL.'/api/sessions', [
-                'checkoutId' => $this->getCheckoutId(),
-                'profileId' => $this->getProfileId(),
-                'amount' => $amount,
-            ])
+            ->post(self::API_BASE_URL.'/api/sessions', $payload)
             ->throw();
 
         return $response->json();

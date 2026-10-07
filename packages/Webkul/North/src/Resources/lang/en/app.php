@@ -10,6 +10,12 @@ return [
         'webhook-signing-secret' => 'Webhook Signing Secret',
     ],
 
+    'checkout' => [
+        'shipping-line' => 'Delivery Charges',
+        'tax-line' => 'Tax',
+        'discount-line' => 'Discount Amount',
+    ],
+
     'response' => [
         'cart-not-found' => 'Cart not found or invalid.',
         'cart-processed' => 'This cart has already been processed.',

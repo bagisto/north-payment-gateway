@@ -44,7 +44,10 @@ class NorthController extends Controller
         }
 
         try {
-            $session = $this->north->createSession((float) $cart->grand_total);
+            $session = $this->north->createSession(
+                round((float) $cart->grand_total, 2),
+                $this->buildProducts($cart),
+            );
 
             return response()->json(['token' => $session['token'] ?? null]);
         } catch (RequestException $e) {
@@ -171,6 +174,57 @@ class NorthController extends Controller
         session()->flash('order_id', $order->id);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Build the line items North's hosted form lists under its Payment Summary.
+     *
+     * North validates the session amount against the sum of these products alone — its "tax" and
+     * "serviceFee" fields are not folded into that check and are not charged — so shipping, tax
+     * and any cart-level discount are each added here as their own, quantity-less line instead.
+     *
+     * @return array<int, array{name: string, price: float, quantity: int, logoUrl: string}>
+     */
+    protected function buildProducts($cart): array
+    {
+        $products = $cart->items
+            ->map(fn ($item) => [
+                'name' => $item->name,
+                'price' => round((float) $item->price, 2),
+                'quantity' => (int) $item->quantity,
+                'logoUrl' => '',
+            ])
+            ->values()
+            ->all();
+
+        if ($cart->shipping_amount > 0) {
+            $products[] = [
+                'name' => trans('north::app.checkout.shipping-line'),
+                'price' => round((float) $cart->shipping_amount, 2),
+                'quantity' => 1,
+                'logoUrl' => '',
+            ];
+        }
+
+        if ($cart->tax_total > 0) {
+            $products[] = [
+                'name' => trans('north::app.checkout.tax-line'),
+                'price' => round((float) $cart->tax_total, 2),
+                'quantity' => 1,
+                'logoUrl' => '',
+            ];
+        }
+
+        if ($cart->discount_amount > 0) {
+            $products[] = [
+                'name' => trans('north::app.checkout.discount-line'),
+                'price' => -round((float) $cart->discount_amount, 2),
+                'quantity' => 1,
+                'logoUrl' => '',
+            ];
+        }
+
+        return $products;
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Webkul\North\Providers;
 
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Webkul\North\Console\Commands\InstallNorth;
 
 class NorthServiceProvider extends ServiceProvider
 {
@@ -13,6 +14,8 @@ class NorthServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->registerConfig();
+
+        $this->registerCommands();
     }
 
     /**
@@ -27,6 +30,10 @@ class NorthServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../Resources/views', 'north');
 
         View::prependNamespace('shop', __DIR__.'/../Resources/views/shop');
+
+        $this->publishes([
+            __DIR__.'/../Resources/assets/images' => storage_path('app/public/north'),
+        ], 'public');
 
         $this->app->register(EventServiceProvider::class);
     }
@@ -43,5 +50,17 @@ class NorthServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             dirname(__DIR__).'/Config/system.php', 'core'
         );
+    }
+
+    /**
+     * Register the console commands of this package.
+     */
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallNorth::class,
+            ]);
+        }
     }
 }

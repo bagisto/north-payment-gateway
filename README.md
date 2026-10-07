@@ -30,18 +30,25 @@ https://developer.north.com/products/online/embedded-checkout/form-integration-g
 "Webkul\\North\\": "packages/Webkul/North/src"
 ```
 
+ Run the following commands:
+
+```bash
+composer dump-autoload
+
+```
+
  Go to **bootstrap/providers.php** and add:
 
 ```php
 Webkul\North\Providers\NorthServiceProvider::class,
 ```
 
- Run the following commands:
+ Run the install command:
 
 ```bash
-composer dump-autoload
-php artisan optimize:clear
+php artisan north:install
 ```
+
 
 The North Payment Gateway is now installed.
 

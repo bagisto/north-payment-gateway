@@ -18,9 +18,5 @@ class EventServiceProvider extends ServiceProvider
         Event::listen('bagisto.shop.layout.body.after', static function (ViewRenderEventManager $viewRenderEventManager) {
             $viewRenderEventManager->addTemplate('north::checkout.onepage.north-form');
         });
-
-        Event::listen('bagisto.shop.layout.body.after', static function (ViewRenderEventManager $viewRenderEventManager) {
-            $viewRenderEventManager->addTemplate('north::checkout.onepage.north-form');
-        });
     }
 }
